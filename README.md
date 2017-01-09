@@ -12,5 +12,7 @@ The output in this example will be `corpus.jpn`, `corpus.swe`, `corpus.swa`, and
 
 You'll first need to download two files (into this directory), as these are constantly being updated upstream:
 
-* wget -c http://downloads.tatoeba.org/exports/sentences.tar.bz2
-* wget -c http://downloads.tatoeba.org/exports/links.tar.bz2
+* wget -c http://downloads.tatoeba.org/exports/sentences.tar.bz2  &&  tar jxvf sentences.tar.bz2
+* wget -c http://downloads.tatoeba.org/exports/links.tar.bz2      &&  tar jxvf links.tar.bz2
+
+That's it!  Enjoy!
