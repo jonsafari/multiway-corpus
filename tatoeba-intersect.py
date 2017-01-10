@@ -3,6 +3,8 @@
 
 import os
 
+maxlinks = 1000000
+
 code_freq_filename = os.path.join('data', 'lang_codes_iso-639-3_freq.tsv')
 code_filename = os.path.join('data', 'lang_codes_iso-639-3.tsv')
 
@@ -30,12 +32,22 @@ def main():
 
     # Relations between translation sentences
     with open('links.csv') as link_file:
-        ...
+        for line in link_file:
+            key, val = line.rstrip().split('\t')
+            key = int(key)
+            val = int(val)
+            # links take up a lot of memory
+            if key > maxlinks or val > maxlinks:
+                continue
+            if key in links:
+                links[key].add(val)
+            else:
+                links[key] = set([val])
 
     # Translation sentences
     with open('sentences.csv') as sentences_file:
         for line in sentences_file:
-            id, code, sent = line.split('\t')
+            id, code, sent = line.rstrip().split('\t')
             if code in lang_set:
                 ...
 
