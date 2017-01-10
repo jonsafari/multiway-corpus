@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # By Jon Dehdari, 2017
 
+""" Builds an n-way multilingual corpus.  See the README.md for more details. """
+
 import os
 
 maxlinks = 1000000
@@ -50,6 +52,7 @@ def main():
 
 
     # Relations between translation sentences
+    print("Processing links ...", file=sys.stderr)
     with open('links.csv') as link_file:
         for line in link_file:
             key, val = line.rstrip().split('\t')
@@ -63,12 +66,25 @@ def main():
             else:
                 links[key] = set([val])
 
-    # Translation sentences
+    # Storing all translation sentences would be really memory inefficient,
+    # so we trade-off space for time, processing this file twice.  First we
+    # build-up a set of all sentence-id's for the smallest language.  Then we
+    # pass through the file again, printing the sentence if it's a translation
+    # of one of the smallest language ID's.
+    least_freq_set = set()
+    print("Processing sentences from smallest language ...", file=sys.stderr)
     with open('sentences.csv') as sentences_file:
         for line in sentences_file:
-            id, code, sent = line.rstrip().split('\t')
-            if code in lang_set:
-                ...
+            id, code, _ = line.rstrip().split('\t')
+            if code in least_freq_code: # this is a sentence from the smallest lang
+                least_freq_set.add(int(id))
+
+    print("Processing sentences from specified languages ...", file=sys.stderr)
+    #with open('sentences.csv') as sentences_file:
+    #    for line in sentences_file:
+    #        id, code, sent = line.rstrip().split('\t')
+    #        if code in lang_set:
+    #            ...
 
 
 
