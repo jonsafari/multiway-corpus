@@ -6,6 +6,7 @@
 import os
 
 maxlinks = 1000000
+corpus_prefix = 'corpus.'
 
 code_freq_filename = os.path.join('data', 'lang_codes_iso-639-3_freq.tsv')
 code_filename = os.path.join('data', 'lang_codes_iso-639-3.tsv')
@@ -79,13 +80,26 @@ def main():
             if code in least_freq_code: # this is a sentence from the smallest lang
                 least_freq_set.add(int(id))
 
-    print("Processing sentences from specified languages ...", file=sys.stderr)
-    #with open('sentences.csv') as sentences_file:
-    #    for line in sentences_file:
-    #        id, code, sent = line.rstrip().split('\t')
-    #        if code in lang_set:
-    #            ...
+    # Open all output files
+    for code in lang_set:
+        filename = corpus_prefix + code
+        try:
+            open(filename, 'w')
+        except as err:
+            OSError(err)
 
+    print("Processing sentences from specified languages ...", file=sys.stderr)
+    with open('sentences.csv') as sentences_file:
+        for line in sentences_file:
+            id, code, sent = line.rstrip().split('\t')
+            if code in lang_set:
+                ...
+
+
+    # Close all output files
+    for code in lang_set:
+        filename = corpus_prefix + code
+        filename.close()
 
 
 if __name__ == '__main__':
