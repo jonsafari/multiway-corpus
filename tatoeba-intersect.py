@@ -5,16 +5,15 @@
 
 import os
 
-maxlinks = 1000000
 corpus_prefix = 'corpus.'
 
 code_freq_filename = os.path.join('data', 'lang_codes_iso-639-3_freq.tsv')
 code_filename = os.path.join('data', 'lang_codes_iso-639-3.tsv')
 
-codes = {}
-codes_rev = {}
+codes = codes_rev = {}
 links = {}
 sents = {}
+lang_sent_ids = {}
 lang_set = set()
 
 def main():
@@ -39,6 +38,11 @@ def main():
             print('"%s" is neither an ISO 639-3 code nor ISO 639-3 (macro-)language name' % lang, file=sys.stderr)
             sys.exit()
 
+    # Initialize a set of ID's, for each language
+    lang_sent_ids['All'] = set()
+    for lang in lang_set:
+        lang_sent_ids[lang] = set()
+
     # Find language with fewest entries in Tatoeba dataset.
     # This was already done to get code_freq_filename, using the following command:
     # cut -f 2 sentences.csv | sort | uniq -c | sort -rn | tr -s ' ' |
@@ -52,21 +56,6 @@ def main():
         print("Smallest Language:", smallest_lang_code, file=sys.stderr)
 
 
-    # Relations between translation sentences
-    print("Processing links ...", file=sys.stderr)
-    with open('links.csv') as link_file:
-        for line in link_file:
-            key, val = line.rstrip().split('\t')
-            key = int(key)
-            val = int(val)
-            # links take up a lot of memory
-            if key > maxlinks or val > maxlinks:
-                continue
-            if key in links:
-                links[key].add(val)
-            else:
-                links[key] = set([val])
-
     # Storing all translation sentences would be really memory inefficient,
     # so we trade-off space for time, processing this file twice.  First we
     # build-up a set of all sentence-id's for the smallest language.  Then we
@@ -77,8 +66,28 @@ def main():
     with open('sentences.csv') as sentences_file:
         for line in sentences_file:
             id, code, sent = line.rstrip().split('\t')
-            if code in smallest_lang_code: # this is a sentence from the smallest lang
-                smallest_lang_sents[int(id)] = sent
+            id = int(id)
+            if code in lang_set:
+                lang_sent_ids[code].add(id)
+                lang_sent_ids['All'].add(id)
+            if code is smallest_lang_code: # this is a sentence from the smallest lang
+                smallest_lang_sents[id] = sent
+
+
+    # Relations between translation sentences
+    print("Processing links ...", file=sys.stderr)
+    with open('links.csv') as link_file:
+        for line in link_file:
+            key, val = line.rstrip().split('\t')
+            key = int(key)
+            val = int(val)
+            # Ignore links that don't involve the languages we're interested in
+            if key not in lang_sent_ids['All'] or val not in lang_sent_ids['All']:
+                continue
+            if key in links:
+                links[key].add(val)
+            else:
+                links[key] = set([val])
 
     # Open all output files
     for code in lang_set:
@@ -88,18 +97,19 @@ def main():
         except OSError as err:
             print(err)
 
-    print("Processing sentences from specified languages ...", file=sys.stderr)
-    with open('sentences.csv') as sentences_file:
-        for line in sentences_file:
-            id, code, sent = line.rstrip().split('\t')
-            if code in lang_set:
-                ...
+    #print("Processing sentences from specified languages ...", file=sys.stderr)
+    #with open('sentences.csv') as sentences_file:
+    #    for line in sentences_file:
+    #        id, code, sent = line.rstrip().split('\t')
+    #        if code in lang_set:
+    #            ...
+    #            #if links[]:
 
 
     # Close all output files
-    for code in lang_set:
-        filename = corpus_prefix + code
-        filename.close()
+    #for code in lang_set:
+    #    filename = corpus_prefix + code
+    #    filename.close()
 
 
 if __name__ == '__main__':
