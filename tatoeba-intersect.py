@@ -45,11 +45,11 @@ def main():
     #   cut -d ' ' -f 3 > data/lang_codes_iso-639-3_freq.tsv
     with open(code_freq_filename) as code_freq_file:
         code_freq = code_freq_file.read().split()
-        least_freq_code = ''
+        smallest_lang_code = ''
         for code in code_freq:
             if code in lang_set:
-                least_freq_code = code
-        print("Smallest Language:", least_freq_code, file=sys.stderr)
+                smallest_lang_code = code
+        print("Smallest Language:", smallest_lang_code, file=sys.stderr)
 
 
     # Relations between translation sentences
@@ -72,21 +72,21 @@ def main():
     # build-up a set of all sentence-id's for the smallest language.  Then we
     # pass through the file again, printing the sentence if it's a translation
     # of one of the smallest language ID's.
-    least_freq_set = set()
+    smallest_lang_sents = {}
     print("Processing sentences from smallest language ...", file=sys.stderr)
     with open('sentences.csv') as sentences_file:
         for line in sentences_file:
-            id, code, _ = line.rstrip().split('\t')
-            if code in least_freq_code: # this is a sentence from the smallest lang
-                least_freq_set.add(int(id))
+            id, code, sent = line.rstrip().split('\t')
+            if code in smallest_lang_code: # this is a sentence from the smallest lang
+                smallest_lang_sents[int(id)] = sent
 
     # Open all output files
     for code in lang_set:
         filename = corpus_prefix + code
         try:
             open(filename, 'w')
-        except as err:
-            OSError(err)
+        except OSError as err:
+            print(err)
 
     print("Processing sentences from specified languages ...", file=sys.stderr)
     with open('sentences.csv') as sentences_file:
