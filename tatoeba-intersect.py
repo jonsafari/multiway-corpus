@@ -14,7 +14,6 @@ links = {}
 sents = {}
 lang_sent_ids = {}
 files = {}
-lang_set = set()
 
 def parse_lang_codes(code_filename):
     """
@@ -32,6 +31,7 @@ def parse_lang_codes(code_filename):
 
 def normalize_lang_codes(langs, codes, codes_rev):
     """ Normalize user-supplied langage names/codes to codes (eg. English to eng). """
+    lang_set = set()
     for lang in langs:
         if lang in codes: # code is in ISO standard
             lang_set.add(lang)
@@ -41,6 +41,21 @@ def normalize_lang_codes(langs, codes, codes_rev):
             print('"%s" is neither an ISO 639-3 code nor ISO 639-3 (macro-)language name' % lang, file=sys.stderr)
             sys.exit()
     return lang_set
+
+def find_smallest_lang(code_freq_filename, lang_set):
+    """
+    Find language with fewest entries in Tatoeba dataset.
+    This was already done to get code_freq_filename, using the following command:
+    cut -f 2 sentences.csv | sort | uniq -c | sort -rn | tr -s ' ' |
+      cut -d ' ' -f 3 > data/lang_codes_iso-639-3_freq.tsv
+    """
+    with open(code_freq_filename) as code_freq_file:
+        code_freq = code_freq_file.read().split()
+        smallest_lang_code = ''
+        for code in code_freq:
+            if code in lang_set:
+                smallest_lang_code = code
+    return smallest_lang_code
 
 
 def main():
@@ -57,16 +72,7 @@ def main():
     for lang in lang_set:
         lang_sent_ids[lang] = set()
 
-    # Find language with fewest entries in Tatoeba dataset.
-    # This was already done to get code_freq_filename, using the following command:
-    # cut -f 2 sentences.csv | sort | uniq -c | sort -rn | tr -s ' ' |
-    #   cut -d ' ' -f 3 > data/lang_codes_iso-639-3_freq.tsv
-    with open(code_freq_filename) as code_freq_file:
-        code_freq = code_freq_file.read().split()
-        smallest_lang_code = ''
-        for code in code_freq:
-            if code in lang_set:
-                smallest_lang_code = code
+    smallest_lang_code = find_smallest_lang(code_freq_filename, lang_set)
 
     lang_list_formatted = []
     for lang in lang_set:
