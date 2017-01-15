@@ -4,6 +4,7 @@
 """ Builds an n-way multilingual corpus.  See the README.md for more details. """
 
 import os
+import sys
 
 corpus_prefix = 'corpus.'
 
@@ -57,9 +58,33 @@ def find_smallest_lang(code_freq_filename, lang_set):
                 smallest_lang_code = code
     return smallest_lang_code
 
+def get_smallest_lang_sents(smallest_lang_code, lang_set, lang_sent_ids, codes):
+    """
+    Storing all translation sentences would be really memory inefficient,
+    so we trade-off space for time, processing this file twice.  First we
+    build-up a set of all sentence-id's for the smallest language.  Then, later,
+    we pass through the file again, printing the sentence if it's a translation
+    of one of the smallest language ID's.
+    """
+    smallest_lang_sents = {}
+    print("Processing sentences from smallest language, %s ..."
+            % codes[smallest_lang_code], file=sys.stderr, end=' ')
+    with open('sentences.csv') as sentences_file:
+        for line in sentences_file:
+            id, code, sent = line.rstrip().split('\t')
+            id = int(id)
+            if code in lang_set:
+                lang_sent_ids[code].add(id)
+                lang_sent_ids['All'].add(id)
+            if code == smallest_lang_code: # this is a sentence from the smallest lang
+                if id in smallest_lang_sents:
+                    print("this shouldn't happen")
+                else:
+                    smallest_lang_sents[id] = {smallest_lang_code: sent}
+    return smallest_lang_sents
+
 
 def main():
-    import sys
 
     langs = sys.argv[1:]
 
@@ -80,26 +105,7 @@ def main():
     print("Looking for intersection of %s" % ', '.join(lang_list_formatted), file=sys.stderr)
 
 
-    # Storing all translation sentences would be really memory inefficient,
-    # so we trade-off space for time, processing this file twice.  First we
-    # build-up a set of all sentence-id's for the smallest language.  Then, later,
-    # we pass through the file again, printing the sentence if it's a translation
-    # of one of the smallest language ID's.
-    smallest_lang_sents = {}
-    print("Processing sentences from smallest language, %s ..."
-            % codes[smallest_lang_code], file=sys.stderr, end=' ')
-    with open('sentences.csv') as sentences_file:
-        for line in sentences_file:
-            id, code, sent = line.rstrip().split('\t')
-            id = int(id)
-            if code in lang_set:
-                lang_sent_ids[code].add(id)
-                lang_sent_ids['All'].add(id)
-            if code == smallest_lang_code: # this is a sentence from the smallest lang
-                if id in smallest_lang_sents:
-                    print("this shouldn't happen")
-                else:
-                    smallest_lang_sents[id] = {smallest_lang_code: sent}
+    smallest_lang_sents = get_smallest_lang_sents(smallest_lang_code, lang_set, lang_sent_ids, codes)
 
     print("%i entries" % len(smallest_lang_sents), file=sys.stderr)
     #print("smallest_lang_sents:", smallest_lang_sents)
