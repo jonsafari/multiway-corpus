@@ -10,26 +10,32 @@ corpus_prefix = 'corpus.'
 code_freq_filename = os.path.join('data', 'lang_codes_iso-639-3_freq.tsv')
 code_filename = os.path.join('data', 'lang_codes_iso-639-3.tsv')
 
-codes = {}
-codes_rev = {}
 links = {}
 sents = {}
 lang_sent_ids = {}
 files = {}
 lang_set = set()
 
-def main():
-    import sys
-
-    langs = sys.argv[1:]
-
-    # Bijective mapping between ISO 639-3 language codes and their (macro-)language name.  Eg. eng:'English'
+def parse_lang_codes(code_filename):
+    """
+    Bijective mapping between ISO 639-3 language codes and their (macro-)language name.
+    Eg. codes = {'eng':'English', ... }; codes_rev = {'English': 'eng', ...}
+    """
+    codes = {}
+    codes_rev = {}
     with open(code_filename) as code_file:
         for line in code_file:
             code, lang = line.rstrip().split('\t')
             codes[code] = lang
             codes_rev[lang] = code
+    return (codes, codes_rev)
 
+def main():
+    import sys
+
+    langs = sys.argv[1:]
+
+    codes, codes_rev = parse_lang_codes(code_filename)
 
     # Normalize user-supplied langage names/codes to codes (eg. eng)
     for lang in langs:
