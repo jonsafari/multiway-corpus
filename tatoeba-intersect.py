@@ -70,7 +70,7 @@ def main():
     # of one of the smallest language ID's.
     smallest_lang_sents = {}
     print("Processing sentences from smallest language, %s ..."
-            % codes[smallest_lang_code], file=sys.stderr)
+            % codes[smallest_lang_code], file=sys.stderr, end=' ')
     with open('sentences.csv') as sentences_file:
         for line in sentences_file:
             id, code, sent = line.rstrip().split('\t')
@@ -83,6 +83,8 @@ def main():
                     print("this shouldn't happen")
                 else:
                     smallest_lang_sents[id] = {smallest_lang_code: sent}
+
+    print("%i entries" % len(smallest_lang_sents), file=sys.stderr)
     #print("smallest_lang_sents:", smallest_lang_sents)
     #print("lang_sent_ids:", lang_sent_ids)
 
