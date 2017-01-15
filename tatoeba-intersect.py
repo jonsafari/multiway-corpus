@@ -14,6 +14,7 @@ codes = codes_rev = {}
 links = {}
 sents = {}
 lang_sent_ids = {}
+files = {}
 lang_set = set()
 
 def main():
@@ -58,8 +59,8 @@ def main():
 
     # Storing all translation sentences would be really memory inefficient,
     # so we trade-off space for time, processing this file twice.  First we
-    # build-up a set of all sentence-id's for the smallest language.  Then we
-    # pass through the file again, printing the sentence if it's a translation
+    # build-up a set of all sentence-id's for the smallest language.  Then, later,
+    # we pass through the file again, printing the sentence if it's a translation
     # of one of the smallest language ID's.
     smallest_lang_sents = {}
     print("Processing sentences from smallest language ...", file=sys.stderr)
@@ -70,8 +71,13 @@ def main():
             if code in lang_set:
                 lang_sent_ids[code].add(id)
                 lang_sent_ids['All'].add(id)
-            if code is smallest_lang_code: # this is a sentence from the smallest lang
-                smallest_lang_sents[id] = sent
+            if code == smallest_lang_code: # this is a sentence from the smallest lang
+                if id in smallest_lang_sents:
+                    print("this shouldn't happen")
+                else:
+                    smallest_lang_sents[id] = {smallest_lang_code: sent}
+    print("smallest_lang_sents:", smallest_lang_sents)
+    print("lang_sent_ids:", lang_sent_ids)
 
 
     # Relations between translation sentences
@@ -89,27 +95,32 @@ def main():
             else:
                 links[key] = set([val])
 
+    print("links=%s" % links)
+
     # Open all output files
     for code in lang_set:
         filename = corpus_prefix + code
         try:
-            open(filename, 'w')
+            files[code] = open(filename, 'w')
         except OSError as err:
             print(err)
 
-    #print("Processing sentences from specified languages ...", file=sys.stderr)
-    #with open('sentences.csv') as sentences_file:
-    #    for line in sentences_file:
-    #        id, code, sent = line.rstrip().split('\t')
-    #        if code in lang_set:
-    #            ...
-    #            #if links[]:
+    print("Processing sentences from specified languages ...", file=sys.stderr)
+    with open('sentences.csv') as sentences_file:
+        for line in sentences_file:
+            id, code, sent = line.rstrip().split('\t')
+            id = int(id)
+            if code in lang_set and code != smallest_lang_code and id in links:
+                print("id=%s, code=%s, sent=%s" % (id, code, sent))
+                for small_id in links[id]:
+                    if small_id in smallest_lang_sents:
+                        smallest_lang_sents[small_id][code] = sent
 
+    print("smallest_lang_sents:", smallest_lang_sents)
 
     # Close all output files
-    #for code in lang_set:
-    #    filename = corpus_prefix + code
-    #    filename.close()
+    for lang in files:
+        files[lang].close()
 
 
 if __name__ == '__main__':
