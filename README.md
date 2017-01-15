@@ -5,7 +5,7 @@ This allows you to do pivot-free [zero-shot](https://arxiv.org/abs/1611.04558) m
 
 Usage is:
 
-    python3 tatoeba-intersect.py Spanish jpn English
+    python3 tatoeba_intersect.py Spanish jpn English
 
 The arguments are the languages that you want to intersect, either the [ISO 639-3](data/lang_codes_iso-639-3.tsv) names (eg. English) or codes (eg. `eng`).
 The output in this example will be `corpus.jpn`, `corpus.spa`, and `corpus.eng` .
