@@ -6,10 +6,10 @@
 import os
 import sys
 
+# Defaults
 corpus_prefix = 'corpus.'
 links_filename = 'links.csv'
 sents_filename = 'sentences.csv'
-
 code_freq_filename = os.path.join('data', 'lang_codes_iso-639-3_freq.tsv')
 code_filename = os.path.join('data', 'lang_codes_iso-639-3.tsv')
 
@@ -37,7 +37,8 @@ def normalize_lang_codes(langs, codes, codes_rev):
         elif lang in codes_rev:
             lang_set.add(codes_rev[lang])
         else:
-            print('"%s" is neither an ISO 639-3 code nor ISO 639-3 (macro-)language name' % lang, file=sys.stderr)
+            print('"%s" is neither an ISO 639-3 code nor ISO 639-3 (macro-)language name' % lang,
+                  file=sys.stderr)
             sys.exit()
     return lang_set
 
@@ -56,7 +57,7 @@ def find_smallest_lang(code_freq_filename, lang_set):
                 smallest_lang_code = code
     return smallest_lang_code
 
-def get_smallest_lang_sents(sents_filename, smallest_lang_code, lang_set, lang_sent_ids, codes):
+def get_smallest_lang_sents(sents_filename, smallest_lang_code, lang_set, lang_sent_ids):
     """
     Storing all translation sentences would be really memory inefficient,
     so we trade-off space for time, processing this file twice.  First we
@@ -96,7 +97,9 @@ def process_links(links_filename, lang_sent_ids):
                 links[key] = set([val])
     return links
 
-def process_other_lang_sents(sents_filename, smallest_lang_code, lang_set, links, smallest_lang_sents):
+def process_other_lang_sents(sents_filename, smallest_lang_code, lang_set,
+                             links, smallest_lang_sents):
+    """ See comments in get_smallest_lang_sents(). """
     with open(sents_filename) as sentences_file:
         for line in sentences_file:
             id, code, sent = line.rstrip().split('\t')
@@ -108,6 +111,9 @@ def process_other_lang_sents(sents_filename, smallest_lang_code, lang_set, links
                         smallest_lang_sents[small_id][code] = sent
 
 def print_sents_to_files(lang_set, smallest_lang_sents, corpus_prefix):
+    """ Opens, eg., corpus.{spa,eng}, prints parallel lines to respective
+    files, and closes the files.
+    """
     # Open all output files
     files = {}
     for code in lang_set:
@@ -126,13 +132,14 @@ def print_sents_to_files(lang_set, smallest_lang_sents, corpus_prefix):
                 print(sent, file=files[lang])
 
     # Close all output files
-    for _, f in files.items():
-        f.close()
+    for _, openfile in files.items():
+        openfile.close()
 
     return output_sent_num
 
 
 def main():
+    """ Builds an n-way multilingual corpus. """
     langs = sys.argv[1:]
 
     codes, codes_rev = parse_lang_codes(code_filename)
@@ -152,17 +159,18 @@ def main():
         lang_list_formatted += ["%s (%s)" % (codes[lang], lang)]
     print("Looking for intersection of %s" % ', '.join(lang_list_formatted), file=sys.stderr)
 
-    print("Processing sentences of smallest language, %s ..."
-            % codes[smallest_lang_code], file=sys.stderr, end=' ')
-    smallest_lang_sents = get_smallest_lang_sents(sents_filename, smallest_lang_code, lang_set, lang_sent_ids, codes)
+    print("Processing sentences of smallest language, %s ..." %
+          codes[smallest_lang_code], file=sys.stderr, end=' ')
+    smallest_lang_sents = get_smallest_lang_sents(sents_filename, smallest_lang_code,
+                                                  lang_set, lang_sent_ids)
     print("%i entries" % len(smallest_lang_sents), file=sys.stderr)
 
     print("Processing links ...", file=sys.stderr)
     links = process_links(links_filename, lang_sent_ids)
-    #print("links=%s" % links)
 
     print("Processing sentences from the other specified languages ...", file=sys.stderr)
-    process_other_lang_sents(sents_filename, smallest_lang_code, lang_set, links, smallest_lang_sents)
+    process_other_lang_sents(sents_filename, smallest_lang_code, lang_set,
+                             links, smallest_lang_sents)
 
     output_sent_num = print_sents_to_files(lang_set, smallest_lang_sents, corpus_prefix)
 
@@ -173,7 +181,8 @@ def main():
             corpus_suffixes += lang
         else:
             corpus_suffixes += ',' + lang
-    print("Output %i lines to:  %s{%s}" % (output_sent_num, corpus_prefix, corpus_suffixes), file=sys.stderr)
+    print("Output %i lines to:  %s{%s}" % (output_sent_num, corpus_prefix, corpus_suffixes),
+          file=sys.stderr)
 
 
 if __name__ == '__main__':
