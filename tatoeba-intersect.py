@@ -10,7 +10,8 @@ corpus_prefix = 'corpus.'
 code_freq_filename = os.path.join('data', 'lang_codes_iso-639-3_freq.tsv')
 code_filename = os.path.join('data', 'lang_codes_iso-639-3.tsv')
 
-codes = codes_rev = {}
+codes = {}
+codes_rev = {}
 links = {}
 sents = {}
 lang_sent_ids = {}
@@ -28,6 +29,7 @@ def main():
             code, lang = line.rstrip().split('\t')
             codes[code] = lang
             codes_rev[lang] = code
+
 
     # Normalize user-supplied langage names/codes to codes (eg. eng)
     for lang in langs:
@@ -54,7 +56,11 @@ def main():
         for code in code_freq:
             if code in lang_set:
                 smallest_lang_code = code
-        print("Smallest Language:", smallest_lang_code, file=sys.stderr)
+
+    lang_list_formatted = []
+    for lang in lang_set:
+        lang_list_formatted += ["%s (%s)" % (codes[lang], lang)]
+    print("Looking for intersection of %s" % ', '.join(lang_list_formatted), file=sys.stderr)
 
 
     # Storing all translation sentences would be really memory inefficient,
@@ -63,7 +69,8 @@ def main():
     # we pass through the file again, printing the sentence if it's a translation
     # of one of the smallest language ID's.
     smallest_lang_sents = {}
-    print("Processing sentences from smallest language ...", file=sys.stderr)
+    print("Processing sentences from smallest language, %s ..."
+            % codes[smallest_lang_code], file=sys.stderr)
     with open('sentences.csv') as sentences_file:
         for line in sentences_file:
             id, code, sent = line.rstrip().split('\t')
@@ -133,7 +140,7 @@ def main():
             corpus_suffixes += key
         else:
             corpus_suffixes += ',' + key
-    print("Output %i lines to %s{%s}" % (output_sent_num, corpus_prefix, corpus_suffixes))
+    print("Output %i lines to:  %s{%s}" % (output_sent_num, corpus_prefix, corpus_suffixes), file=sys.stderr)
 
     # Close all output files
     for _, f in files.items():
