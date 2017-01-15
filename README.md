@@ -5,10 +5,10 @@ It does so in an efficient way, starting with the smallest language.
 
 Usage is:
 
-    python3 tatoeba-intersect.py Japanese Swedish swa English
+    python3 tatoeba-intersect.py Spanish jpn English
 
 The arguments are the languages that you want to intersect, either the [ISO 639-3](data/lang_codes_iso-639-3.tsv) names (eg. English) or codes (eg. `eng`).
-The output in this example will be `corpus.jpn`, `corpus.swe`, `corpus.swa`, and `corpus.eng` .
+The output in this example will be `corpus.jpn`, `corpus.spa`, and `corpus.eng` .
 
 You'll first need to download two files (into this directory), as these are constantly being updated upstream:
 
