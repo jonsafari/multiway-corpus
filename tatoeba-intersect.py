@@ -13,9 +13,6 @@ sents_filename = 'sentences.csv'
 code_freq_filename = os.path.join('data', 'lang_codes_iso-639-3_freq.tsv')
 code_filename = os.path.join('data', 'lang_codes_iso-639-3.tsv')
 
-sents = {}
-lang_sent_ids = {}
-files = {}
 
 def parse_lang_codes(code_filename):
     """
@@ -99,8 +96,20 @@ def process_links(links_filename, lang_sent_ids):
                 links[key] = set([val])
     return links
 
+def process_other_lang_sents(sents_filename, smallest_lang_code, lang_set, links, smallest_lang_sents):
+    with open(sents_filename) as sentences_file:
+        for line in sentences_file:
+            id, code, sent = line.rstrip().split('\t')
+            id = int(id)
+            if code in lang_set and code != smallest_lang_code and id in links:
+                for small_id in links[id]:
+                    # This takes the first translation, ignoring subsequent ones
+                    if small_id in smallest_lang_sents and code not in smallest_lang_sents[small_id]:
+                        smallest_lang_sents[small_id][code] = sent
+
 def print_sents_to_files(lang_set, smallest_lang_sents, corpus_prefix):
     # Open all output files
+    files = {}
     for code in lang_set:
         filename = corpus_prefix + code
         try:
@@ -131,6 +140,7 @@ def main():
     lang_set = normalize_lang_codes(langs, codes, codes_rev)
 
     # Initialize a set of ID's, for each language
+    lang_sent_ids = {}
     lang_sent_ids['All'] = set()
     for lang in lang_set:
         lang_sent_ids[lang] = set()
@@ -152,26 +162,17 @@ def main():
     #print("links=%s" % links)
 
     print("Processing sentences from the other specified languages ...", file=sys.stderr)
-    with open('sentences.csv') as sentences_file:
-        for line in sentences_file:
-            id, code, sent = line.rstrip().split('\t')
-            id = int(id)
-            if code in lang_set and code != smallest_lang_code and id in links:
-                for small_id in links[id]:
-                    # This takes the first translation, ignoring subsequent ones
-                    if small_id in smallest_lang_sents and code not in smallest_lang_sents[small_id]:
-                        smallest_lang_sents[small_id][code] = sent
-
+    process_other_lang_sents(sents_filename, smallest_lang_code, lang_set, links, smallest_lang_sents)
 
     output_sent_num = print_sents_to_files(lang_set, smallest_lang_sents, corpus_prefix)
 
     # Pretty-print final message
     corpus_suffixes = ''
-    for key in files.keys():
+    for lang in lang_set:
         if corpus_suffixes == '':
-            corpus_suffixes += key
+            corpus_suffixes += lang
         else:
-            corpus_suffixes += ',' + key
+            corpus_suffixes += ',' + lang
     print("Output %i lines to:  %s{%s}" % (output_sent_num, corpus_prefix, corpus_suffixes), file=sys.stderr)
 
 
