@@ -111,16 +111,26 @@ def main():
             id, code, sent = line.rstrip().split('\t')
             id = int(id)
             if code in lang_set and code != smallest_lang_code and id in links:
-                print("id=%s, code=%s, sent=%s" % (id, code, sent))
                 for small_id in links[id]:
-                    if small_id in smallest_lang_sents:
+                    # This takes the first translation, ignoring subsequent ones
+                    if small_id in smallest_lang_sents and code not in smallest_lang_sents[small_id]:
                         smallest_lang_sents[small_id][code] = sent
 
     print("smallest_lang_sents:", smallest_lang_sents)
 
+    # Now print sets that have all language translations
+    output_sent_num = 0
+    for _, val in smallest_lang_sents.items():
+        if val.keys() == lang_set:
+            output_sent_num += 1
+            for lang, sent in val.items():
+                print(sent, file=files[lang])
+
+    print("Output %i lines" % output_sent_num)
+
     # Close all output files
-    for lang in files:
-        files[lang].close()
+    for _, f in files.items():
+        f.close()
 
 
 if __name__ == '__main__':
