@@ -99,6 +99,29 @@ def process_links(links_filename, lang_sent_ids):
                 links[key] = set([val])
     return links
 
+def print_sents_to_files(lang_set, smallest_lang_sents, corpus_prefix):
+    # Open all output files
+    for code in lang_set:
+        filename = corpus_prefix + code
+        try:
+            files[code] = open(filename, 'w')
+        except OSError as err:
+            print(err)
+
+    # Now print sets that have all language translations
+    output_sent_num = 0
+    for _, val in smallest_lang_sents.items():
+        if val.keys() == lang_set:
+            output_sent_num += 1
+            for lang, sent in val.items():
+                print(sent, file=files[lang])
+
+    # Close all output files
+    for _, f in files.items():
+        f.close()
+
+    return output_sent_num
+
 
 def main():
     langs = sys.argv[1:]
@@ -140,25 +163,7 @@ def main():
                         smallest_lang_sents[small_id][code] = sent
 
 
-    # Open all output files
-    for code in lang_set:
-        filename = corpus_prefix + code
-        try:
-            files[code] = open(filename, 'w')
-        except OSError as err:
-            print(err)
-
-    # Now print sets that have all language translations
-    output_sent_num = 0
-    for _, val in smallest_lang_sents.items():
-        if val.keys() == lang_set:
-            output_sent_num += 1
-            for lang, sent in val.items():
-                print(sent, file=files[lang])
-
-    # Close all output files
-    for _, f in files.items():
-        f.close()
+    output_sent_num = print_sents_to_files(lang_set, smallest_lang_sents, corpus_prefix)
 
     # Pretty-print final message
     corpus_suffixes = ''
