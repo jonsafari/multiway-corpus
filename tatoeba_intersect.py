@@ -37,9 +37,9 @@ def normalize_lang_codes(langs, codes, codes_rev):
         elif lang in codes_rev:
             lang_set.add(codes_rev[lang])
         else:
-            print('"%s" is neither an ISO 639-3 code nor ISO 639-3 (macro-)language name' % lang,
+            print("Warning: \"%s\" is neither an ISO 639-3 code nor ISO 639-3 (macro-)language name.  I'll try anyways." % lang,
                   file=sys.stderr)
-            sys.exit()
+            lang_set.add(lang)
     return lang_set
 
 def find_smallest_lang(code_freq_filename, lang_set):
@@ -156,11 +156,18 @@ def main():
 
     lang_list_formatted = []
     for lang in lang_set:
-        lang_list_formatted += ["%s (%s)" % (codes[lang], lang)]
+        try:
+            lang_list_formatted += ["%s (%s)" % (codes[lang], lang)]
+        except:
+            lang_list_formatted += ["%s" % lang]
     print("Looking for intersection of %s" % ', '.join(lang_list_formatted), file=sys.stderr)
 
+    try:
+        smallest_lang = codes[smallest_lang_code]
+    except:
+        smallest_lang = smallest_lang_code
     print("Processing sentences of smallest language, %s ..." %
-          codes[smallest_lang_code], file=sys.stderr, end=' ')
+          smallest_lang, file=sys.stderr, end=' ')
     smallest_lang_sents = get_smallest_lang_sents(sents_filename, smallest_lang_code,
                                                   lang_set, lang_sent_ids)
     print("%i entries" % len(smallest_lang_sents), file=sys.stderr)

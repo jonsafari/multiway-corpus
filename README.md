@@ -35,4 +35,5 @@ Here are some languages in the upstream dataset:
 | Hungarian | hun | 191328 |
 | Japanese | jpn | 184296 |
 | Hebrew | heb | 153655 |
+| Berber | ber | 104842 |
 | (Hundreds more languages) | | |
