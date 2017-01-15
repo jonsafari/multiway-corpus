@@ -30,14 +30,8 @@ def parse_lang_codes(code_filename):
             codes_rev[lang] = code
     return (codes, codes_rev)
 
-def main():
-    import sys
-
-    langs = sys.argv[1:]
-
-    codes, codes_rev = parse_lang_codes(code_filename)
-
-    # Normalize user-supplied langage names/codes to codes (eg. eng)
+def normalize_lang_codes(langs, codes, codes_rev):
+    """ Normalize user-supplied langage names/codes to codes (eg. English to eng). """
     for lang in langs:
         if lang in codes: # code is in ISO standard
             lang_set.add(lang)
@@ -46,6 +40,17 @@ def main():
         else:
             print('"%s" is neither an ISO 639-3 code nor ISO 639-3 (macro-)language name' % lang, file=sys.stderr)
             sys.exit()
+    return lang_set
+
+
+def main():
+    import sys
+
+    langs = sys.argv[1:]
+
+    codes, codes_rev = parse_lang_codes(code_filename)
+
+    lang_set = normalize_lang_codes(langs, codes, codes_rev)
 
     # Initialize a set of ID's, for each language
     lang_sent_ids['All'] = set()
