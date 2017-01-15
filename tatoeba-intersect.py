@@ -76,8 +76,8 @@ def main():
                     print("this shouldn't happen")
                 else:
                     smallest_lang_sents[id] = {smallest_lang_code: sent}
-    print("smallest_lang_sents:", smallest_lang_sents)
-    print("lang_sent_ids:", lang_sent_ids)
+    #print("smallest_lang_sents:", smallest_lang_sents)
+    #print("lang_sent_ids:", lang_sent_ids)
 
 
     # Relations between translation sentences
@@ -95,7 +95,7 @@ def main():
             else:
                 links[key] = set([val])
 
-    print("links=%s" % links)
+    #print("links=%s" % links)
 
     # Open all output files
     for code in lang_set:
@@ -105,7 +105,7 @@ def main():
         except OSError as err:
             print(err)
 
-    print("Processing sentences from specified languages ...", file=sys.stderr)
+    print("Processing sentences from the other specified languages ...", file=sys.stderr)
     with open('sentences.csv') as sentences_file:
         for line in sentences_file:
             id, code, sent = line.rstrip().split('\t')
@@ -116,7 +116,7 @@ def main():
                     if small_id in smallest_lang_sents and code not in smallest_lang_sents[small_id]:
                         smallest_lang_sents[small_id][code] = sent
 
-    print("smallest_lang_sents:", smallest_lang_sents)
+    #print("smallest_lang_sents:", smallest_lang_sents)
 
     # Now print sets that have all language translations
     output_sent_num = 0
@@ -126,7 +126,14 @@ def main():
             for lang, sent in val.items():
                 print(sent, file=files[lang])
 
-    print("Output %i lines" % output_sent_num)
+    # Pretty-print final message
+    corpus_suffixes = ''
+    for key in files.keys():
+        if corpus_suffixes == '':
+            corpus_suffixes += key
+        else:
+            corpus_suffixes += ',' + key
+    print("Output %i lines to %s{%s}" % (output_sent_num, corpus_prefix, corpus_suffixes))
 
     # Close all output files
     for _, f in files.items():
